@@ -5,7 +5,10 @@ import pandas as pd
 from groundwater_contamination_model import GroundwaterContaminationModel, setup_chinese_font
 import io
 import base64
-
+# 设置matplotlib字体以解决中文显示问题
+import matplotlib
+matplotlib.rcParams['font.family'] = ['DejaVu Sans', 'Arial', 'Liberation Sans']
+matplotlib.rcParams['axes.unicode_minus'] = False
 # 设置页面配置
 st.set_page_config(
     page_title="地下水污染迁移计算器",
@@ -445,3 +448,4 @@ st.markdown("""
     <a href='https://streamlit.io' target='_blank'>Powered by Streamlit</a>
 </div>
 """, unsafe_allow_html=True)
+
