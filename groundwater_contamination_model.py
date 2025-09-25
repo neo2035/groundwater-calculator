@@ -37,7 +37,7 @@ class GroundwaterContaminationModel:
     
     def __init__(self, m, W, n, u, DL, lambda_decay=0.0):
         """
-        初始化模型参数
+        初始化Model Parameter
         
         Args:
             m (float): 污染物泄漏质量 (g)
@@ -136,8 +136,8 @@ class GroundwaterContaminationModel:
         Args:
             x (array): 位置数组
             concentrations (array): 浓度数组
-            standard_limit (float): 评价标准 (mg/L)
-            detection_limit (float): 检出限 (mg/L)
+            standard_limit (float): Standard (mg/L)
+            detection_limit (float): Detection Limit (mg/L)
         
         Returns:
             dict: 包含统计结果的字典
@@ -145,11 +145,11 @@ class GroundwaterContaminationModel:
         max_concentration = np.max(concentrations)
         max_position = x[np.argmax(concentrations)]
         
-        # 超标范围
+        # Exceeded Range
         exceed_start, exceed_end = self.find_concentration_range(x, concentrations, standard_limit)
         exceed_range = f"{exceed_start:.0f}m - {exceed_end:.0f}m" if exceed_start is not None else "无超标"
         
-        # 影响范围
+        # Influence Range
         influence_start, influence_end = self.find_concentration_range(x, concentrations, detection_limit)
         influence_range = f"{influence_start:.0f}m - {influence_end:.0f}m" if influence_start is not None else "无影响"
         
@@ -172,8 +172,8 @@ class GroundwaterContaminationModel:
         Args:
             t_pred (float): 预测时间 (天)
             x_range (array): 空间范围
-            standard_limit (float): 评价标准
-            detection_limit (float): 检出限
+            standard_limit (float): Standard
+            detection_limit (float): Detection Limit
             figsize (tuple): 图形尺寸
             save_path (str): 保存路径，可选
         """
@@ -185,53 +185,53 @@ class GroundwaterContaminationModel:
         # 绘制浓度曲线
         plt.plot(x_range, concentrations, 'b-', linewidth=2.5, label=f't = {t_pred}天')
         
-        # 标记评价标准线和检出限线
+        # 标记Standard线和Detection Limit线
         plt.axhline(y=standard_limit, color='red', linestyle='--', linewidth=2, 
-                   label=f'评价标准 ({standard_limit} mg/L)')
+                   label=f'Standard ({standard_limit} mg/L)')
         plt.axhline(y=detection_limit, color='green', linestyle=':', linewidth=2, 
-                   label=f'检出限 ({detection_limit} mg/L)')
+                   label=f'Detection Limit ({detection_limit} mg/L)')
         
-        # 填充超标区域
+        # 填充Exceeded Area
         if results['exceed_start'] is not None:
             plt.fill_between(x_range, concentrations, standard_limit, 
                            where=(concentrations > standard_limit),
-                           color='red', alpha=0.2, label='超标区域', interpolate=True)
+                           color='red', alpha=0.2, label='Exceeded Area', interpolate=True)
         
-        # 填充影响区域（但不超标的部分）
+        # 填充Influence Area（但不超标的部分）
         if results['influence_start'] is not None:
             plt.fill_between(x_range, concentrations, detection_limit, 
                            where=((concentrations > detection_limit) & (concentrations <= standard_limit)),
-                           color='orange', alpha=0.15, label='影响区域', interpolate=True)
+                           color='orange', alpha=0.15, label='Influence Area', interpolate=True)
         
         # 标记关键位置
         plume_center = self.u * t_pred
         plt.axvline(x=plume_center, color='gray', linestyle='-', alpha=0.7, linewidth=2,
-                   label=f'污染羽中心 (x=ut={plume_center:.1f}m)')
-        plt.axvline(x=0, color='black', linestyle='-', linewidth=2, label='注入点 (x=0)')
+                   label=f'Plume Center (x=ut={plume_center:.1f}m)')
+        plt.axvline(x=0, color='black', linestyle='-', linewidth=2, label='Injection Point (x=0)')
         
-        # 标记最大浓度点
+        # 标记Max Concentration
         plt.plot(results['max_position'], results['max_concentration'], 'ro', 
-                markersize=8, label=f'最大浓度点 ({results["max_concentration"]:.3f} mg/L)')
+                markersize=8, label=f'Max Concentration ({results["max_concentration"]:.3f} mg/L)')
         
         # 设置图表属性
         plt.title(f'一维瞬时泄漏模型 - 浓度空间分布 (t = {t_pred}天)', fontsize=14, fontweight='bold')
-        plt.xlabel('距离 (m)', fontsize=12)
-        plt.ylabel('浓度 (mg/L)', fontsize=12)
+        plt.xlabel('Distance (m)', fontsize=12)
+        plt.ylabel('Concentration (mg/L))', fontsize=12)
         plt.legend(loc='best', fontsize=10)
         plt.grid(True, alpha=0.3)
         plt.xlim(x_range[0], x_range[-1])
         plt.ylim(bottom=0, top=max(results['max_concentration'] * 1.1, standard_limit * 1.2))
         
         # 添加文本注释
-        textstr = f'''模型参数:
+        textstr = f'''Model Parameter:
 质量: {self.m}g, 截面积: {self.W}m²
 流速: {self.u}m/d, 孔隙度: {self.n}
 弥散系数: {self.DL}m²/d, 反应系数: {self.lambda_decay}/d
 
-结果统计:
+Results Statistics:
 最大浓度: {results["max_concentration"]:.3f} mg/L
-超标范围: {results["exceed_range"]}
-影响范围: {results["influence_range"]}'''
+Exceeded Range: {results["exceed_range"]}
+Influence Range: {results["influence_range"]}'''
         
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)
         plt.text(0.02, 0.98, textstr, transform=plt.gca().transAxes, fontsize=9,
@@ -254,8 +254,8 @@ class GroundwaterContaminationModel:
         Args:
             time_list (list): 时间点列表
             x_range (array): 空间范围
-            standard_limit (float): 评价标准
-            detection_limit (float): 检出限
+            standard_limit (float): Standard
+            detection_limit (float): Detection Limit
             figsize (tuple): 图形尺寸
             save_path (str): 保存路径，可选
         """
@@ -272,14 +272,14 @@ class GroundwaterContaminationModel:
             plt.plot(x_range, concentrations, color=color, linestyle=linestyle, 
                     linewidth=2, label=f't = {t}天')
         
-        # 标记评价标准线和检出限线
+        # 标记Standard线和Detection Limit线
         plt.axhline(y=standard_limit, color='red', linestyle='--', linewidth=1.5, 
-                   label=f'评价标准 ({standard_limit} mg/L)')
+                   label=f'Standard ({standard_limit} mg/L)')
         plt.axhline(y=detection_limit, color='green', linestyle=':', linewidth=1.5, 
-                   label=f'检出限 ({detection_limit} mg/L)')
+                   label=f'Detection Limit ({detection_limit} mg/L)')
         
-        # 标记注入点
-        plt.axvline(x=0, color='black', linestyle='-', linewidth=1.5, label='注入点 (x=0)')
+        # 标记Injection Point
+        plt.axvline(x=0, color='black', linestyle='-', linewidth=1.5, label='Injection Point (x=0)')
         
         # 设置图表属性
         plt.title('一维瞬时泄漏模型 - 多时间点浓度分布对比', fontsize=14, fontweight='bold')
@@ -300,7 +300,7 @@ class GroundwaterContaminationModel:
 def main():
     """主函数 - 演示模型使用"""
     
-    # 设置模型参数（根据您的截图）
+    # 设置Model Parameter（根据您的截图）
     model = GroundwaterContaminationModel(
         m=100.0,        # 污染物泄漏质量 (g)
         W=2.0,          # 横截面积 (m^2)
@@ -310,9 +310,9 @@ def main():
         lambda_decay=0.0 # 反应系数 (1/d)
     )
     
-    # 设置评价标准
-    standard_limit = 0.5   # 评价标准 (mg/L)
-    detection_limit = 0.05 # 检出限 (mg/L)
+    # 设置Standard
+    standard_limit = 0.5   # Standard (mg/L)
+    detection_limit = 0.05 # Detection Limit (mg/L)
     
     # 设置空间范围
     x_range = np.arange(-50, 101, 1)  # -50m 到 100m，步长1m
@@ -324,7 +324,7 @@ def main():
     t_pred = 100.0
     results = model.plot_single_time(t_pred, x_range, standard_limit, detection_limit)
     
-    print(f"\n--- 模拟结果统计 (时间: {t_pred}天) ---")
+    print(f"\n--- 模拟Results Statistics (时间: {t_pred}天) ---")
     print(f"最大浓度: {results['max_concentration']:.3f} mg/L")
     print(f"最大浓度位置: {results['max_position']:.1f} m")
     print(f"超标距离 (> {standard_limit} mg/L): {results['exceed_range']}")
@@ -341,7 +341,8 @@ def main():
         concentrations = model.calculate_concentration(x_range, t)
         results_t = model.analyze_results(x_range, concentrations, standard_limit, detection_limit)
         print(f"t = {t}天: 最大浓度 = {results_t['max_concentration']:.3f} mg/L, "
-              f"超标范围 = {results_t['exceed_range']}")
+              f"Exceeded Range = {results_t['exceed_range']}")
 
 if __name__ == "__main__":
     main()
+
